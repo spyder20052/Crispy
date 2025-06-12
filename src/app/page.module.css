@@ -1,0 +1,71 @@
+.main {
+  font-family: 'Poppins', Arial, sans-serif;
+  background: #f5f5f5;
+  min-height: 100vh;
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 40px 0 40px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.nav {
+  display: flex;
+  gap: 32px;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.commandez {
+  background: #fdb833;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.commandez:hover {
+  background: #ff9800;
+}
+
+.bandeDecor {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 16px 0;
+}
+
+.menuIcons {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 32px 0;
+}
+
+.foodGrid {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin: 32px 0;
+}
+
+.frames {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin: 32px 0;
+}
+
+.illustration {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin: 32px 0 64px 0;
+}
