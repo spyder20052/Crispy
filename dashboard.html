@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - BurgerDash</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #FF4136;
+            --primary-dark: #E60000;
+            --primary-light: #FF7675;
+            --secondary: #FF851B;
+            --accent: #FFDC00;
+            --success: #2ECC40;
+            --warning: #FF851B;
+            --danger: #FF4136;
+            --gray-100: #f7fafc;
+            --gray-200: #edf2f7;
+            --gray-300: #e2e8f0;
+            --gray-400: #cbd5e0;
+            --gray-500: #a0aec0;
+            --gray-600: #718096;
+            --gray-700: #4a5568;
+            --gray-800: #2d3748;
+            --gray-900: #1a202c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-100);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .nav-menu {
+            padding: 1.5rem;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--gray-700);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--gray-100);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            color: var(--gray-900);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            opacity: 0.1;
+            color: var(--primary);
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            color: var(--gray-800);
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid var(--gray-200);
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .action-title {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.5rem;
+        }
+
+        .action-description {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Toggle Button */
+        .toggle-sidebar {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-700);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .toggle-sidebar {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <svg class="logo" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="#FF4136"/>
+                <path d="M30 40 Q50 20 70 40 L70 65 Q50 85 30 65 Z" fill="#FFDC00"/>
+                <circle cx="40" cy="45" r="5" fill="#2ECC40"/>
+                <circle cx="60" cy="45" r="5" fill="#2ECC40"/>
+            </svg>
+            <span class="brand">BurgerDash</span>
+        </div>
+
+        <div class="nav-menu">
+            <a href="dashboard.html" class="nav-item active">
+                <i class="fas fa-chart-line"></i>
+                Tableau de bord
+            </a>
+            <a href="kitchen.html" class="nav-item">
+                <i class="fas fa-utensils"></i>
+                Cuisine
+            </a>
+            <a href="menu.html" class="nav-item">
+                <i class="fas fa-hamburger"></i>
+                Menu
+            </a>
+            <a href="inventory.html" class="nav-item">
+                <i class="fas fa-box"></i>
+                Stock
+            </a>
+            <a href="employees.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                Employés
+            </a>
+            <a href="sales.html" class="nav-item">
+                <i class="fas fa-cash-register"></i>
+                Ventes
+            </a>
+            <a href="reservations.html" class="nav-item">
+                <i class="fas fa-calendar-alt"></i>
+                Réservations
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="header">
+            <button class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Tableau de bord</h1>
+            <div class="header-actions">
+                <div style="position: relative;">
+                    <i class="fas fa-bell" style="font-size: 1.25rem; color: var(--gray-600); cursor: pointer;"></i>
+                    <span style="position: absolute; top: -5px; right: -5px; background: var(--primary); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;">3</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card animate-fade-in">
+                <i class="fas fa-euro-sign stat-icon"></i>
+                <h3>2,450 €</h3>
+                <p>Chiffre d'affaires (aujourd'hui)</p>
+            </div>
+            <div class="stat-card animate-fade-in">
+                <i class="fas fa-shopping-bag stat-icon"></i>
+                <h3>127</h3>
+                <p>Commandes (aujourd'hui)</p>
+            </div>
+            <div class="stat-card animate-fade-in">
+                <i class="fas fa-users stat-icon"></i>
+                <h3>45</h3>
+                <p>Clients actifs</p>
+            </div>
+            <div class="stat-card animate-fade-in">
+                <i class="fas fa-box stat-icon"></i>
+                <h3>3</h3>
+                <p>Alertes stock</p>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card animate-fade-in">
+                <div class="chart-header">
+                    <h3 class="chart-title">Ventes horaires</h3>
+                    <select class="form-select">
+                        <option>Aujourd'hui</option>
+                        <option>Cette semaine</option>
+                        <option>Ce mois</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card animate-fade-in">
+                <div class="chart-header">
+                    <h3 class="chart-title">Produits populaires</h3>
+                    <select class="form-select">
+                        <option>Top 5</option>
+                        <option>Top 10</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="productsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <div class="action-card animate-fade-in">
+                <i class="fas fa-utensils action-icon"></i>
+                <h3 class="action-title">Vue cuisine</h3>
+                <p class="action-description">8 commandes en attente</p>
+            </div>
+            <div class="action-card animate-fade-in">
+                <i class="fas fa-box action-icon"></i>
+                <h3 class="action-title">Stock</h3>
+                <p class="action-description">3 produits à commander</p>
+            </div>
+            <div class="action-card animate-fade-in">
+                <i class="fas fa-calendar-alt action-icon"></i>
+                <h3 class="action-title">Réservations</h3>
+                <p class="action-description">12 réservations aujourd'hui</p>
+            </div>
+            <div class="action-card animate-fade-in">
+                <i class="fas fa-users action-icon"></i>
+                <h3 class="action-title">Employés</h3>
+                <p class="action-description">8 employés en service</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Toggle Sidebar
+        document.querySelector('.toggle-sidebar').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('active');
+        });
+
+        // Sales Chart
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['9h', '10h', '11h', '12h', '13h', '14h', '15h', '16h', '17h', '18h', '19h', '20h'],
+                datasets: [{
+                    label: 'Ventes (€)',
+                    data: [150, 200, 350, 650, 850, 600, 450, 300, 400, 550, 750, 600],
+                    borderColor: '#FF4136',
+                    backgroundColor: 'rgba(255, 65, 54, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Products Chart
+        const productsCtx = document.getElementById('productsChart').getContext('2d');
+        new Chart(productsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Classic Burger', 'Frites', 'Coca-Cola', 'Menu Maxi', 'Sundae'],
+                datasets: [{
+                    label: 'Quantité vendue',
+                    data: [120, 95, 80, 60, 45],
+                    backgroundColor: [
+                        '#FF4136',
+                        '#FF851B',
+                        '#FFDC00',
+                        '#2ECC40',
+                        '#7FDBFF'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Quick Actions
+        document.querySelectorAll('.action-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const title = card.querySelector('.action-title').textContent.toLowerCase();
+                switch(title) {
+                    case 'vue cuisine':
+                        window.location.href = 'kitchen.html';
+                        break;
+                    case 'stock':
+                        window.location.href = 'inventory.html';
+                        break;
+                    case 'réservations':
+                        window.location.href = 'reservations.html';
+                        break;
+                    case 'employés':
+                        window.location.href = 'employees.html';
+                        break;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

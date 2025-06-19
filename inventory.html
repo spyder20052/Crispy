@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Stocks - BurgerDash</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Variables et reset */
+        :root {
+            --primary: #FF4136;
+            --primary-dark: #E60000;
+            --primary-light: #FF7675;
+            --secondary: #FF851B;
+            --accent: #FFDC00;
+            --success: #2ECC40;
+            --warning: #FF851B;
+            --danger: #FF4136;
+            --gray-100: #f7fafc;
+            --gray-200: #edf2f7;
+            --gray-300: #e2e8f0;
+            --gray-400: #cbd5e0;
+            --gray-500: #a0aec0;
+            --gray-600: #718096;
+            --gray-700: #4a5568;
+            --gray-800: #2d3748;
+            --gray-900: #1a202c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--gray-100);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            color: var(--gray-900);
+        }
+
+        /* Alerts Section */
+        .alerts-section {
+            margin-bottom: 2rem;
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .alert-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border-left: 4px solid var(--danger);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .alert-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--danger);
+        }
+
+        .alert-content h3 {
+            color: var(--gray-900);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-content p {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+
+        /* Inventory Table */
+        .inventory-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .inventory-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inventory-filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .inventory-table th,
+        .inventory-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .inventory-table th {
+            background-color: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .inventory-table tbody tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        /* Stock Level Indicator */
+        .stock-level {
+            width: 100%;
+            height: 6px;
+            background-color: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .stock-level-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .stock-level-high {
+            background-color: var(--success);
+        }
+
+        .stock-level-medium {
+            background-color: var(--warning);
+        }
+
+        .stock-level-low {
+            background-color: var(--danger);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            outline: none;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--gray-400);
+            background-color: var(--gray-50);
+        }
+
+        /* Form Controls */
+        .form-input,
+        .form-select {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-500);
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .inventory-filters {
+                flex-direction: column;
+            }
+
+            .inventory-filters > * {
+                width: 100%;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-card {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Gestion des Stocks</h1>
+        <button class="btn btn-primary" id="addItemBtn">
+            <i class="fas fa-plus"></i>
+            Ajouter un ingrédient
+        </button>
+    </div>
+
+    <section class="alerts-section">
+        <div class="alerts-grid">
+            <div class="alert-card">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>Stock faible : Pain burger</h3>
+                    <p>Reste 20 unités (seuil : 50)</p>
+                </div>
+            </div>
+
+            <div class="alert-card">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>Stock faible : Sauce spéciale</h3>
+                    <p>Reste 2 litres (seuil : 5)</p>
+                </div>
+            </div>
+
+            <div class="alert-card">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>Stock faible : Frites</h3>
+                    <p>Reste 5 kg (seuil : 10)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="inventory-card">
+        <div class="inventory-header">
+            <div class="inventory-filters">
+                <input type="text" class="form-input" placeholder="Rechercher un ingrédient..." id="searchInput">
+                <select class="form-select" id="categoryFilter">
+                    <option value="">Toutes les catégories</option>
+                    <option value="bread">Pain</option>
+                    <option value="meat">Viande</option>
+                    <option value="vegetables">Légumes</option>
+                    <option value="sauce">Sauces</option>
+                    <option value="drinks">Boissons</option>
+                </select>
+                <select class="form-select" id="stockFilter">
+                    <option value="">Tous les niveaux</option>
+                    <option value="low">Stock faible</option>
+                    <option value="medium">Stock moyen</option>
+                    <option value="high">Stock élevé</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="inventory-table">
+                <thead>
+                    <tr>
+                        <th>Ingrédient</th>
+                        <th>Catégorie</th>
+                        <th>Stock actuel</th>
+                        <th>Niveau</th>
+                        <th>Seuil d'alerte</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Pain burger</td>
+                        <td>Pain</td>
+                        <td>20 unités</td>
+                        <td>
+                            <div class="stock-level">
+                                <div class="stock-level-bar stock-level-low" style="width: 20%"></div>
+                            </div>
+                        </td>
+                        <td>50 unités</td>
+                        <td>
+                            <button class="btn btn-outline" onclick="adjustStock(this)">
+                                <i class="fas fa-plus-minus"></i>
+                                Ajuster
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Steak haché</td>
+                        <td>Viande</td>
+                        <td>150 unités</td>
+                        <td>
+                            <div class="stock-level">
+                                <div class="stock-level-bar stock-level-high" style="width: 75%"></div>
+                            </div>
+                        </td>
+                        <td>100 unités</td>
+                        <td>
+                            <button class="btn btn-outline" onclick="adjustStock(this)">
+                                <i class="fas fa-plus-minus"></i>
+                                Ajuster
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sauce spéciale</td>
+                        <td>Sauce</td>
+                        <td>2 litres</td>
+                        <td>
+                            <div class="stock-level">
+                                <div class="stock-level-bar stock-level-low" style="width: 15%"></div>
+                            </div>
+                        </td>
+                        <td>5 litres</td>
+                        <td>
+                            <button class="btn btn-outline" onclick="adjustStock(this)">
+                                <i class="fas fa-plus-minus"></i>
+                                Ajuster
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Ajustement Stock -->
+    <div class="modal" id="adjustModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ajuster le stock</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="adjustForm">
+                <div class="form-group">
+                    <label class="form-label">Ingrédient</label>
+                    <input type="text" id="itemName" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stock actuel</label>
+                    <input type="text" id="currentStock" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ajustement</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn btn-outline" onclick="decrementStock()">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" id="adjustAmount" class="form-input" value="0" style="text-align: center;">
+                        <button type="button" class="btn btn-outline" onclick="incrementStock()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Confirmer</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const stockFilter = document.getElementById('stockFilter');
+        const adjustModal = document.getElementById('adjustModal');
+        const adjustForm = document.getElementById('adjustForm');
+        const modalClose = document.querySelector('.modal-close');
+
+        // Filter inventory
+        function filterInventory() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const category = categoryFilter.value;
+            const stockLevel = stockFilter.value;
+
+            document.querySelectorAll('.inventory-table tbody tr').forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const rowCategory = row.cells[1].textContent.toLowerCase();
+                const stockBar = row.querySelector('.stock-level-bar');
+                const level = stockBar.classList.contains('stock-level-low') ? 'low' :
+                             stockBar.classList.contains('stock-level-medium') ? 'medium' : 'high';
+
+                const matchesSearch = name.includes(searchTerm);
+                const matchesCategory = !category || rowCategory === category;
+                const matchesStock = !stockLevel || level === stockLevel;
+
+                row.style.display = matchesSearch && matchesCategory && matchesStock ? '' : 'none';
+            });
+        }
+
+        searchInput.addEventListener('input', filterInventory);
+        categoryFilter.addEventListener('change', filterInventory);
+        stockFilter.addEventListener('change', filterInventory);
+
+        // Modal Functions
+        function adjustStock(btn) {
+            const row = btn.closest('tr');
+            document.getElementById('itemName').value = row.cells[0].textContent;
+            document.getElementById('currentStock').value = row.cells[2].textContent;
+            adjustModal.classList.add('active');
+        }
+
+        modalClose.addEventListener('click', () => {
+            adjustModal.classList.remove('active');
+        });
+
+        adjustModal.addEventListener('click', (e) => {
+            if (e.target === adjustModal) {
+                adjustModal.classList.remove('active');
+            }
+        });
+
+        // Stock Adjustment
+        function incrementStock() {
+            const input = document.getElementById('adjustAmount');
+            input.value = parseInt(input.value) + 1;
+        }
+
+        function decrementStock() {
+            const input = document.getElementById('adjustAmount');
+            const newValue = parseInt(input.value) - 1;
+            input.value = newValue >= 0 ? newValue : 0;
+        }
+
+        adjustForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Add stock adjustment logic here
+            adjustModal.classList.remove('active');
+        });
+
+        // Update stock levels appearance
+        function updateStockLevels() {
+            document.querySelectorAll('.stock-level-bar').forEach(bar => {
+                const width = parseInt(bar.style.width);
+                if (width <= 25) {
+                    bar.className = 'stock-level-bar stock-level-low';
+                } else if (width <= 50) {
+                    bar.className = 'stock-level-bar stock-level-medium';
+                } else {
+                    bar.className = 'stock-level-bar stock-level-high';
+                }
+            });
+        }
+
+        // Initial stock levels update
+        updateStockLevels();
+    </script>
+</body>
+</html>
