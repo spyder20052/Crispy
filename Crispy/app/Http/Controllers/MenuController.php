@@ -25,7 +25,10 @@ class MenuController extends Controller
             'available' => 'required|boolean',
             'image' => 'nullable|string',
         ]);
-        Menu::create($validated);
+        $menu = Menu::create($validated);
+        if ($request->ajax()) {
+            return response()->json(['menu' => $menu], 201);
+        }
         return redirect('/menu')->with('success', 'Plat ajouté avec succès.');
     }
 
