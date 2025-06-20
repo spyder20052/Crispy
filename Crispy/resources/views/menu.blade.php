@@ -416,8 +416,80 @@
         // Handle Form Submit
         itemForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // Add form handling logic here
-            toggleModal();
+
+            // Collect form data
+            const formData = new FormData();
+            formData.append('name', document.getElementById('itemName').value);
+            formData.append('category', document.getElementById('itemCategory').value);
+            formData.append('price', document.getElementById('itemPrice').value);
+            formData.append('description', document.getElementById('itemDescription').value);
+            formData.append('available', document.getElementById('itemAvailability').checked ? 1 : 0);
+
+            // Handle image file input
+            const imageInput = document.getElementById('itemImage');
+            if (imageInput.files.length > 0) {
+                formData.append('image', imageInput.files[0]);
+            } else {
+                formData.append('image', '');
+            }
+
+            // Send AJAX request
+            fetch('{{ route("menu.store") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'ajout du plat');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const menu = data.menu;
+
+                // Create new menu item element
+                const div = document.createElement('div');
+                div.classList.add('menu-item');
+                div.dataset.category = menu.category;
+
+                const imageUrl = menu.image ? URL.createObjectURL(imageInput.files[0]) : 'https://via.placeholder.com/300x200?text=Image';
+
+                div.innerHTML = `
+                    <img src="${imageUrl}" class="menu-item-image" alt="${menu.name}">
+                    <div class="menu-item-content">
+                        <div class="menu-item-header">
+                            <h3 class="menu-item-title">${menu.name}</h3>
+                            <span class="menu-item-price">${parseFloat(menu.price).toFixed(2).replace('.', ',')} €</span>
+                        </div>
+                        <p class="menu-item-description">${menu.description}</p>
+                        <div class="menu-item-footer">
+                            <span class="badge ${menu.available ? 'badge-success' : 'badge-danger'}">${menu.available ? 'Disponible' : 'Indisponible'}</span>
+                            <div class="actions">
+                                <button class="btn btn-outline edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <label class="switch">
+                                    <input type="checkbox" ${menu.available ? 'checked' : ''} disabled>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Append new item to menu grid
+                menuGrid.appendChild(div);
+
+                // Reset form and close modal
+                itemForm.reset();
+                toggleModal();
+            })
+            .catch(error => {
+                alert(error.message);
+            });
         });
         // Filter items
         function filterItems() {
